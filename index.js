@@ -31,11 +31,11 @@ class Person {
         return this._state
     }
 
-    attack(receiving) {
+    Attack(receiving) {
         if (receiving.name === this.name) {
             let randomActionIndex = Math.floor(Math.random() * 3)
 
-            if (this.hp > 0 & this.hp - 10 <= 0 || this.hp > 0 & this.hp - 30 <= 0 || this.hp > 0 & this.hp - 40 <= 0) {
+            if (this.hp - 40 <= 0) {
                 if (randomActionIndex === 0) {
                     receiving.hp = receiving.hp - 10
                 } else if (randomActionIndex === 1) {
@@ -49,7 +49,8 @@ class Person {
                     `${this.name} fell headfirst onto a rock and died`
                 ]
                 console.log(actions[randomActionIndex])
-                receiving.state = "dead"
+
+                if (this.hp <= 0) receiving.state = "dead"
             } else if (this.hp > 0) {
                 if (randomActionIndex === 0) {
                     receiving.hp = receiving.hp - 10
@@ -66,72 +67,65 @@ class Person {
                 console.log(actions[randomActionIndex])
             }
         } else {
-            if (this.hp <= 0) {
-                console.log(`${this.name}'s body is angry and tried to hit ${receiving.name} but couldn't`)
+            if (receiving._dodge === 3) {
+                console.log(`${receiving.name} dodged ${this.name}'s attack`)
             } else {
-                if (receiving.dodge === 3) {
-                    console.log(`${receiving.name} dodged ${this.name}'s attack`)
+                receiving.hp = receiving.hp - this.damage
+                if (receiving.hp <= 0 && receiving.state === "alive") {
+                    receiving.state = "dead"
+                    console.log(`${receiving.name} was killed by ${this.name}`)
+                } else if (receiving.state === "dead") {
+                    this.Attack(players[Math.floor(Math.random() * players.length)])
                 } else {
-                    receiving.hp = receiving.hp - this.damage
-                    if (receiving.hp <= 0 && receiving.state === "alive") {
-                        receiving.state = "dead"
-                        console.log(`${receiving.name} was killed by ${this.name}`)
-                    } else if (receiving.hp <= 0 && receiving.state === "dead") {
-                        console.log(`${this.name} attacked the lifeless body of ${receiving.name}`)
-                    } else {
-                        console.log(`${this.name} attacked ${receiving.name}, and ${receiving.name}'s life went down to ${receiving.hp}`)
-                    }
+                    console.log(`${this.name} attacked ${receiving.name}, and ${receiving.name}'s life went down to ${receiving.hp}`)
                 }
-                if (receiving.dodge > 0) {
-                    receiving.dodge = receiving.dodge - 1
-                }
+            }
+            if (receiving._dodge > 0) {
+                receiving._dodge = receiving._dodge - 1
             }
         }
     }
-    heal() {
-        if (this.hp <= 0) {
-            console.log(`${this.name}'s body tried to heal itself but cannot heal because it's dead`)
+    Heal() {
+        if (this.hp < 80) {
+            this.hp = this.hp + 20
+            console.log(`${this.name} healed himself, and his life went up to ${this.hp}`)
         } else {
-            if (this.hp < 80) {
-                this.hp = this.hp + 20
-                console.log(`${this.name} healed himself, and his life went up to ${this.hp}`)
-            } else {
-                this.hp = 100
-                console.log(`${this.name} tried to heal himself but his health is already full`)
-            }
+            this.hp = 100
+            console.log(`${this.name} tried to heal himself but his health is already full`)
         }
     }
-    dodge() {
-        if (this.hp <= 0) {
-            console.log(`The lifeless body of ${this.name} tried to avoid something but couldn't because it's dead`)
+    Dodge() {
+        if (this._dodge === 0) {
+            console.log(`${this.name} activated the dodge ability`)
+            this.dodge = 3
         } else {
-            if (this.dodge === 0) {
-                console.log(`${this.name} activated the dodge ability`)
-                this.dodge = 3
-            } else {
-                console.log(`${this.name} tried to dodge but couldn't because the dodge is on cooldown`)
-            }
+            console.log(this._dodge)
+            console.log(`${this.name} tried to dodge but couldn't because the dodge is on cooldown`)
         }
     }
 }
 
-const pedro = new Person("Pedro", 35)
-const arthur = new Person("Arthur", 25)
+const players = []
 
-const players = [pedro, arthur]
+function createPlayer(name, damage) {
+    const newPlayer = new Person(name, damage)
+    players.push(newPlayer)
+}
 
-function simula(num) {
-    for (let i = 0; i < num; i++) {
-        let winner = ""
+createPlayer("Pedro", 20)
+createPlayer("Willy", 20)
+createPlayer("Alex", 20)
+
+function simula() {
+    for (let i = 0; i < 1000000; i++) {
+        let winner
 
         for (let j = 0; j < players.length; j++) {
             let playersDead = 0
-            let checkPlayerAlive = players.length-1 
-            
-            for (let k = 0; k <players.length; k++) {
-                if (players[k].state == "dead") {
-                    playersDead++
-                }
+            let checkPlayerAlive = players.length - 1
+
+            for (let k = 0; k < players.length; k++) {
+                if (players[k].state == "dead") playersDead++
             }
             if (playersDead == checkPlayerAlive) {
                 if (players[j].state === "alive") {
@@ -139,26 +133,50 @@ function simula(num) {
                 }
             }
         }
-        if (winner.length > 0) {
-            console.log(`The winner of this simulation is ${winner}!`)
-            i = num
-        } else {
-            let randomPlayerIndex = Math.floor(Math.random() * players.length)
-            let skills = Math.floor(Math.random() * 3)
 
-            if (skills === 0) {
-                players[randomPlayerIndex].dodge()
-            } else if (skills === 1) {
-                let randomPlayerReceivingIndex = Math.floor(Math.random() * players.length)
-                let playerAttacking = players[randomPlayerIndex]
-                let playerReceiving = players[randomPlayerReceivingIndex]
+        if (winner) {
+            console.log(`\nThe winner of this simulation is ${winner}!`)
+            i = 1000000
+            return
+        }
 
-                playerAttacking.attack(playerReceiving)
-            } else if (skills === 2) {
-                players[randomPlayerIndex].heal()
+        let randomPlayerIndex = Math.floor(Math.random() * players.length)
+
+        function d() {
+            players[randomPlayerIndex].Dodge()
+        }
+        function a() {
+            let randomPlayerReceivingIndex = Math.floor(Math.random() * players.length)
+            let playerAttacking = players[randomPlayerIndex]
+            let playerReceiving = players[randomPlayerReceivingIndex]
+
+            playerAttacking.Attack(playerReceiving)
+        }
+        function h() {
+            players[randomPlayerIndex].Heal()
+        }
+        if (players[randomPlayerIndex]._hp > 0) {
+            if (players[randomPlayerIndex]._dodge > 0 && players[randomPlayerIndex]._hp === 100) {
+                a()
+            } else {
+                if (players[randomPlayerIndex]._hp === 100) {
+                    let possibleMovesNum = Math.floor(Math.random() * 2)
+
+                    { possibleMovesNum === 0 ? a() : d() }
+                } else if (players[randomPlayerIndex]._dodge > 0) {
+                    let possibleMovesNum = Math.floor(Math.random() * 2)
+
+                    { possibleMovesNum === 0 ? a() : h() }
+                } else {
+                    let possibleMovesNum = Math.floor(Math.random() * 3)
+
+                    if (possibleMovesNum === 0) d()
+                    if (possibleMovesNum === 1) a()
+                    if (possibleMovesNum === 2) h()
+                }
             }
         }
     }
 }
 
-simula(100)
+simula()
