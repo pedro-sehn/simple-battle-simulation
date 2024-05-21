@@ -1,8 +1,8 @@
 ### Simple battle simulation
 
-Just a battle simulation
+Just a code to simulate a "battle"
 
-If you want you can create other players and add them in the players array
+If you wanna add some players, use the function createPlayer and pass the parameters name and strength to the player
 
 Run it in terminal with:
 + `node index.js`
