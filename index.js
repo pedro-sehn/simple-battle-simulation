@@ -35,7 +35,7 @@ class Person {
         if (receiving.name === this.name) {
             let randomActionIndex = Math.floor(Math.random() * 3)
 
-            if (this.hp - 40 <= 0) {
+            if (this.hp - 40 <= 0 && randomActionIndex === 2 || this.hp - 30 <= 0 && randomActionIndex === 1 || this.hp - 10 <= 0 && randomActionIndex === 0) {
                 if (randomActionIndex === 0) {
                     receiving.hp = receiving.hp - 10
                 } else if (randomActionIndex === 1) {
@@ -72,8 +72,8 @@ class Person {
             } else {
                 receiving.hp = receiving.hp - this.damage
                 if (receiving.hp <= 0 && receiving.state === "alive") {
-                    receiving.state = "dead"
                     console.log(`${receiving.name} was killed by ${this.name}`)
+                    receiving.state = "dead"
                 } else if (receiving.state === "dead") {
                     this.Attack(players[Math.floor(Math.random() * players.length)])
                 } else {
@@ -86,12 +86,13 @@ class Person {
         }
     }
     Heal() {
+        if (this.state === "dead") return
         if (this.hp < 80) {
             this.hp = this.hp + 20
             console.log(`${this.name} healed himself, and his life went up to ${this.hp}`)
         } else {
             this.hp = 100
-            console.log(`${this.name} tried to heal himself but his health is already full`)
+            console.log(`${this.name} healed himself, and his life went up to ${this.hp}`)
         }
     }
     Dodge() {
@@ -171,8 +172,8 @@ function simula() {
                     let possibleMovesNum = Math.floor(Math.random() * 3)
 
                     if (possibleMovesNum === 0) d()
-                    if (possibleMovesNum === 1) a()
-                    if (possibleMovesNum === 2) h()
+                    if (possibleMovesNum === 1) h()
+                    if (possibleMovesNum === 2) a()
                 }
             }
         }
